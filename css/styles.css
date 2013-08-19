@@ -55,3 +55,79 @@ body {
     background-color: green;
     border: none;
 }
+
+.message {
+    border: 3px solid #ebebeb;
+    border-radius: 5px;
+    margin: 10px 0;
+    padding: 3px 8px;
+    font-family: verdana, sans-serif;
+}
+
+.username {
+    float: left;
+    color: turquoise;
+    font-weight: bold;
+}
+
+.msgCreated {
+    float: left;
+    float: right;
+    font-size: 9px;
+    color: gray;
+    margin-top: 5px;
+}
+
+.messageText {
+    clear: both;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

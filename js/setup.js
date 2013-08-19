@@ -18,8 +18,16 @@ $(document).ready(function(){
   //
   var cleanMessages = function(msgArray) {
     for (var i = 0; i < msgArray.length; i++) {
-      var msgString = msgArray[i].text + " " + "created at: " + msgArray[i].createdAt.slice(0,10);
-      $('<div></div>').attr('class', 'message').text(msgString).appendTo('#main');
+      var msgString = msgArray[i].text;
+      var msgCreated = msgArray[i].createdAt.slice(0,10);
+      var username = msgArray[i].username || 'anonymous';
+
+      var mainMsgDiv = $('<div></div>').attr('class', 'message');
+      $('<div></div>').attr('class', 'username').text(username).appendTo(mainMsgDiv);
+      $('<div></div>').attr('class', 'msgCreated').text(msgCreated).appendTo(mainMsgDiv);
+      $('<div></div>').attr('class', 'messageText').text(msgString).appendTo(mainMsgDiv);
+
+      mainMsgDiv.appendTo('#main');
     }
   };
 
@@ -29,16 +37,12 @@ $(document).ready(function(){
     cleanMessages(msgArray);
   });
 
-  var newMessage = {
-    'username': 'shawndrost',
-    'text': 'trololo',
-    'roomname': '4chan' // Optional
-  };
-
   $('#submitMsg').on('click', function(){
     var userMsg = $('.textBox').val();
+    var username = window.location.search;
+    username = username.slice(username.indexOf('=')+1);
     var msgObj = JSON.stringify({
-      username: 'blake_and_jess',
+      username: username,
       text: userMsg
     });
     console.log(msgObj);
