@@ -38,3 +38,20 @@ body {
     color: green;
     line-height: 13px;
 }
+
+.usrMsg {
+    float: right;
+}
+
+.textBox {
+    display: block;
+    width: 250px;
+    height: 100px;
+}
+
+#submitMsg {
+    margin: 10px 0;
+    clear: right;
+    background-color: green;
+    border: none;
+}
