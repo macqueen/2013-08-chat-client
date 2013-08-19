@@ -23,7 +23,7 @@ $(document).ready(function(){
     }
   };
 
-  $.get('https://api.parse.com/1/classes/messages', function(data) {
+  $.get('https://api.parse.com/1/classes/messages', 'order=-createdAt', function(data) {
     var jsonObj;
     var msgArray = data.results;
     cleanMessages(msgArray);
@@ -36,7 +36,17 @@ $(document).ready(function(){
   };
 
   $('#submitMsg').on('click', function(){
-    console.log("i got clicked!");
-    console.log($('.textBox').val());
+    var userMsg = $('.textBox').val();
+    var msgObj = JSON.stringify({
+      username: 'blake_and_jess',
+      text: userMsg
+    });
+    console.log(msgObj);
+    $.ajax('https://api.parse.com/1/classes/messages', {
+      type: 'POST',
+      contentType: 'application/json',
+      data: msgObj
+    });
+
   });
 });
