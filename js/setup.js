@@ -80,7 +80,16 @@ Update.prototype.postNewMsgs =  function(msgObj) {
 
 var ChatView = function(options){
   this.update = options.update;
-  $('#submitMsg').on('click', this.submitChat);
+  var submitChat = $.proxy(this.submitChat, this);
+  var refreshChat = $.proxy(this.refreshChat, this);
+  var friend = $.proxy(this.friend, this);
+  var selectRoom = $.proxy(this.selectRoom, this);
+  var createRoom = $.proxy(this.createRoom, this);
+  $('#submitMsg').on('click', submitChat);
+  $('#refreshButton').on('click', refreshChat);
+  $('body').on('click', '.username', friend);
+  $('body').on('click', '.roomItem', selectRoom);
+  $('#submitRoom').on('click', createRoom);
 };
 
 ChatView.prototype.submitChat = function(){
@@ -97,63 +106,36 @@ ChatView.prototype.submitChat = function(){
     this.update.postNewMsgs(msgObj);
 };
 
-// var SubmitChatView = function() {
-//   $('#submitMsg').on('click', function(){
-//     var userMsg = $('.textBox').val();
-//     var username = window.location.search;
-//     username = username.slice(username.indexOf('=')+1);
-//     var currentRoom = $('.currentRoom').text();
-//     var msgObj = JSON.stringify({
-//       username: username,
-//       text: userMsg,
-//       roomname: currentRoom
-//     });
-//     $('.textBox').val('');
-//     Update.prototype.postNewMsgs(msgObj);
-//   });
-// };
 
-var RefreshChatView = function(){
-  $('#refreshButton').on('click', function() {
+ChatView.prototype.refreshChat = function(){
     var currentRoom = $('.currentRoom').text();
-    Update.prototype.getNewMsgs(currentRoom);
-  });
+    this.update.getNewMsgs(currentRoom);
 };
 
-var FriendView = function(){
-  $('body').on('click', '.username', function() {
-    friendList.push($(this).text());
-    var username = $(this).text();
+ChatView.prototype.friend = function(e){
+    friendList.push($(e.currentTarget).text());
+    var username = $(e.currentTarget).text();
     $('.username:contains('+ username + ')').closest('.message').toggleClass('friend');
     $('.username:contains('+ username + ')').nextAll('.friendImg').toggle();
-  });
 };
 
-var SelectRoomView = function(){
-  $('body').on('click', '.roomItem', function(){
-    var selectedRoom = $(this).text();
-    Update.prototype.getNewMsgs(selectedRoom);
-  });
+ChatView.prototype.selectRoom = function(e){
+    var selectedRoom = $(e.currentTarget).text();
+    this.update.getNewMsgs(selectedRoom);
 };
 
-var CreateRoomView = function(){
-  $('#submitRoom').on('click', function() {
+ChatView.prototype.createRoom = function(){
     var selectedRoom = $('#newRoom').val();
     $('#newRoom').val('');
     $('#messageArea').html('');
     $('#dropdownMenu').html('');
     rooms[selectedRoom] = selectedRoom;
     cleanMessages([], selectedRoom);
-  });
 };
 
 $(document).ready(function(){
   var update = new Update();
   var chatView = new ChatView({update: update});
-  var refreshChatView = new RefreshChatView();
-  var friendView = new FriendView();
-  var selectRoomView = new SelectRoomView();
-  var createRoomView = new CreateRoomView();
 
   update.getNewMsgs();
 
