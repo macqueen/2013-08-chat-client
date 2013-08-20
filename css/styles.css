@@ -91,6 +91,14 @@ body {
     font-size: 16px;
 }
 
+.friendImg {
+    display: none;
+}
+
+.showFriend {
+    display: block;
+}
+
 
 
 

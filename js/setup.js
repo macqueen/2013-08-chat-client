@@ -11,6 +11,9 @@ if(!/(&|\?)username=/.test(window.location.search)){
 $(document).ready(function(){
 
   var friendList = [];
+  var rooms = {};
+
+  var friendImgURL = 'http://www.clker.com/cliparts/7/d/9/B/f/R/smiley-face-md.png';
 
   // Don't worry about this code, it will ensure that your ajax calls are allowed by the browser
   $.ajaxPrefilter(function(settings, _, jqXHR) {
@@ -19,11 +22,14 @@ $(document).ready(function(){
   });
 
   //
-  var cleanMessages = function(msgArray) {
+  var cleanMessages = function(msgArray, roomName) {
+    // console.log(msgArray);
+    findRooms(msgArray);
     for (var i = 0; i < msgArray.length; i++) {
       var msgString = msgArray[i].text;
       var msgCreated = msgArray[i].createdAt.slice(0,10);
       var username = msgArray[i].username || 'anonymous';
+      var messageRoom = msgArray[i].roomname || undefined;
       var mainMsgDiv;
 
       if(friendList.indexOf(username) !== -1) {
@@ -34,8 +40,25 @@ $(document).ready(function(){
       $('<div></div>').attr('class', 'username').text(username).appendTo(mainMsgDiv);
       $('<div></div>').attr('class', 'msgCreated').text(msgCreated).appendTo(mainMsgDiv);
       $('<div></div>').attr('class', 'messageText').text(msgString).appendTo(mainMsgDiv);
+      $('<div class="friendImg"><img src="' + friendImgURL + '"/></div>').appendTo(mainMsgDiv);
 
-      mainMsgDiv.appendTo('#messageArea');
+      if (roomName){
+        if (messageRoom === roomName){
+          mainMsgDiv.appendTo('#messageArea');
+        }
+      } else {
+        mainMsgDiv.appendTo('#messageArea');
+      }
+    }
+  };
+
+  var findRooms = function(msgArray) {
+    for (var i = 0; i < msgArray.length; i++) {
+      if (msgArray[i].roomname) rooms[msgArray[i].roomname] = msgArray[i].roomname;
+    }
+    for (var room in rooms) {
+     // console.log(rooms[room]);
+      $('<li></li>').attr('class', 'roomItem').text(rooms[room]).appendTo($('#dropdownMenu'));
     }
   };
 
@@ -70,11 +93,23 @@ $(document).ready(function(){
   });
 
   $('body').on('click', '.username', function() {
-    //do stuff when you click on a username
     friendList.push($(this).text());
     var username = $(this).text();
-    $('.username:contains('+ username + ')').toggle('friend');
+    $('.username:contains('+ username + ')').closest('.message').toggleClass('friend');
+    $('.username:contains('+ username + ')').nextAll('.friendImg').toggle();
    });
+
+  $('body').on('click', '.roomItem', function(){
+    // on click, don't refresh anything, just togggle to hide chats that aren't from the selected room
+    var selectedRoom = $(this).text();
+    $.get('https://api.parse.com/1/classes/messages', 'order=-createdAt', function(data) {
+      var msgArray = data.results;
+      console.log(selectedRoom);
+      $('#messageArea').html('');
+      $('#dropdownMenu').html('');
+      cleanMessages(msgArray, selectedRoom);
+    });
+  });
 
 });
 
