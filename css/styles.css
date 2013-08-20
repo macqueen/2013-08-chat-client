@@ -39,6 +39,10 @@ body {
     line-height: 13px;
 }
 
+.refresh {
+    float: right;
+}
+
 .usrMsg {
     float: right;
 }

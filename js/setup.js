@@ -27,12 +27,11 @@ $(document).ready(function(){
       $('<div></div>').attr('class', 'msgCreated').text(msgCreated).appendTo(mainMsgDiv);
       $('<div></div>').attr('class', 'messageText').text(msgString).appendTo(mainMsgDiv);
 
-      mainMsgDiv.appendTo('#main');
+      mainMsgDiv.appendTo('#messageArea');
     }
   };
 
   $.get('https://api.parse.com/1/classes/messages', 'order=-createdAt', function(data) {
-    var jsonObj;
     var msgArray = data.results;
     cleanMessages(msgArray);
   });
@@ -53,4 +52,57 @@ $(document).ready(function(){
     });
 
   });
+
+  $('#refreshButton').on('click', function() {
+    $.get('https://api.parse.com/1/classes/messages', 'order=-createdAt', function(data) {
+      var msgArray = data.results;
+      $('#messageArea').html('');
+      cleanMessages(msgArray);
+    });
+  });
+
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
