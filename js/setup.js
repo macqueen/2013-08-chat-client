@@ -7,7 +7,10 @@ if(!/(&|\?)username=/.test(window.location.search)){
   window.location.search = newSearch;
 }
 
+
 $(document).ready(function(){
+
+  var friendList = [];
 
   // Don't worry about this code, it will ensure that your ajax calls are allowed by the browser
   $.ajaxPrefilter(function(settings, _, jqXHR) {
@@ -21,8 +24,13 @@ $(document).ready(function(){
       var msgString = msgArray[i].text;
       var msgCreated = msgArray[i].createdAt.slice(0,10);
       var username = msgArray[i].username || 'anonymous';
+      var mainMsgDiv;
 
-      var mainMsgDiv = $('<div></div>').attr('class', 'message');
+      if(friendList.indexOf(username) !== -1) {
+        mainMsgDiv = $('<div></div>').attr('class', 'message friend');
+      }else {
+        mainMsgDiv = $('<div></div>').attr('class', 'message');
+      }
       $('<div></div>').attr('class', 'username').text(username).appendTo(mainMsgDiv);
       $('<div></div>').attr('class', 'msgCreated').text(msgCreated).appendTo(mainMsgDiv);
       $('<div></div>').attr('class', 'messageText').text(msgString).appendTo(mainMsgDiv);
@@ -44,7 +52,7 @@ $(document).ready(function(){
       username: username,
       text: userMsg
     });
-    console.log(msgObj);
+    $('.textBox').val('');
     $.ajax('https://api.parse.com/1/classes/messages', {
       type: 'POST',
       contentType: 'application/json',
@@ -60,6 +68,13 @@ $(document).ready(function(){
       cleanMessages(msgArray);
     });
   });
+
+  $('body').on('click', '.username', function() {
+    //do stuff when you click on a username
+    friendList.push($(this).text());
+    var username = $(this).text();
+    $('.username:contains('+ username + ')').toggle('friend');
+   });
 
 });
 
