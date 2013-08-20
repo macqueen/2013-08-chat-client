@@ -24,7 +24,7 @@ $(document).ready(function(){
   //
   var cleanMessages = function(msgArray, roomName) {
     // console.log(msgArray);
-    findRooms(msgArray);
+    findRooms(msgArray, roomName);
     for (var i = 0; i < msgArray.length; i++) {
       var msgString = msgArray[i].text;
       var msgCreated = msgArray[i].createdAt.slice(0,10);
@@ -52,13 +52,16 @@ $(document).ready(function(){
     }
   };
 
-  var findRooms = function(msgArray) {
+  var findRooms = function(msgArray, roomname) {
     for (var i = 0; i < msgArray.length; i++) {
       if (msgArray[i].roomname) rooms[msgArray[i].roomname] = msgArray[i].roomname;
     }
     for (var room in rooms) {
-     // console.log(rooms[room]);
-      $('<li></li>').attr('class', 'roomItem').text(rooms[room]).appendTo($('#dropdownMenu'));
+      if (room === roomname) {
+        $('<li></li>').attr('class', 'roomItem currentRoom').text(rooms[room]).appendTo($('#dropdownMenu'));
+      } else{
+        $('<li></li>').attr('class', 'roomItem').text(rooms[room]).appendTo($('#dropdownMenu'));
+      }
     }
   };
 
@@ -71,10 +74,13 @@ $(document).ready(function(){
     var userMsg = $('.textBox').val();
     var username = window.location.search;
     username = username.slice(username.indexOf('=')+1);
+    var currentRoom = $('.currentRoom').text();
     var msgObj = JSON.stringify({
       username: username,
-      text: userMsg
+      text: userMsg,
+      roomname: currentRoom
     });
+
     $('.textBox').val('');
     $.ajax('https://api.parse.com/1/classes/messages', {
       type: 'POST',
@@ -85,10 +91,12 @@ $(document).ready(function(){
   });
 
   $('#refreshButton').on('click', function() {
+    var currentRoom = $('.currentRoom').text();
     $.get('https://api.parse.com/1/classes/messages', 'order=-createdAt', function(data) {
       var msgArray = data.results;
       $('#messageArea').html('');
-      cleanMessages(msgArray);
+      $('#dropdownMenu').html('');
+      cleanMessages(msgArray, currentRoom);
     });
   });
 
