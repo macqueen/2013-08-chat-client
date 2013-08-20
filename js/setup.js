@@ -112,11 +112,19 @@ $(document).ready(function(){
     var selectedRoom = $(this).text();
     $.get('https://api.parse.com/1/classes/messages', 'order=-createdAt', function(data) {
       var msgArray = data.results;
-      console.log(selectedRoom);
       $('#messageArea').html('');
       $('#dropdownMenu').html('');
       cleanMessages(msgArray, selectedRoom);
     });
+  });
+
+  $('#submitRoom').on('click', function() {
+    var selectedRoom = $('#newRoom').val();
+    $('#newRoom').val('');
+    $('#messageArea').html('');
+    $('#dropdownMenu').html('');
+    rooms[selectedRoom] = selectedRoom;
+    cleanMessages([], selectedRoom);
   });
 
 });
