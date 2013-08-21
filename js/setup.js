@@ -33,10 +33,10 @@ var findRooms = function(msgArray, roomname) {
 var cleanMessages = function(msgArray, roomName) {
   findRooms(msgArray, roomName);
   for (var i = 0; i < msgArray.length; i++) {
-    var msgString = msgArray[i].text;
-    var msgCreated = msgArray[i].createdAt.slice(0,10);
-    var username = msgArray[i].username || 'anonymous';
-    var messageRoom = msgArray[i].roomname || undefined;
+    var msgString = msgArray[i].get('text');
+    var msgCreated = msgArray[i].get('createdAt').slice(0,10);
+    var username = msgArray[i].get('username') || 'anonymous';
+    var messageRoom = msgArray[i].get('roomname') || undefined;
     var mainMsgDiv;
 
     if(friendList.indexOf(username) !== -1) {
@@ -59,14 +59,32 @@ var cleanMessages = function(msgArray, roomName) {
   }
 };
 
+var Messages = Backbone.Model.extend({});
+
+var MessagesView = Backbone.View.extend({
+  render: function() {
+    // debugger
+    this.$el.text(this.model.get('text'));
+    this.$el.appendTo('#messageArea');
+  }
+});
+
 var Update = function() {};
 
 Update.prototype.getNewMsgs = function(roomname){
   $.get('https://api.parse.com/1/classes/messages', 'order=-createdAt', function(data) {
-      var msgArray = data.results;
+      var msgArray = $.map(data.results, function(messageData){
+        return new Messages(messageData);
+      });
+      var messageViews = $.map(msgArray, function(messageData) {
+        return new MessagesView({model: messageData});
+      });
       $('#messageArea').html('');
       $('#dropdownMenu').html('');
-      cleanMessages(msgArray, roomname);
+      // cleanMessages(msgArray, roomname);
+      _.each(messageViews, function(messageView) {
+        messageView.render();
+      });
   });
 };
 
