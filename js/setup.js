@@ -16,38 +16,39 @@ $.ajaxPrefilter(function(settings, _, jqXHR) {
 var friendList = [];
 var rooms = {};
 var friendImgURL = 'http://www.clker.com/cliparts/7/d/9/B/f/R/smiley-face-md.png';
+var currentRoom;
 
-var findRooms = function(msgArray, roomname) {
-  for (var i = 0; i < msgArray.length; i++) {
-    if (msgArray[i].roomname) rooms[msgArray[i].roomname] = msgArray[i].roomname;
-  }
-  for (var room in rooms) {
-    if (room === roomname) {
-      $('<li></li>').attr('class', 'roomItem currentRoom').text(rooms[room]).appendTo($('#dropdownMenu'));
-    } else{
-      $('<li></li>').attr('class', 'roomItem').text(rooms[room]).appendTo($('#dropdownMenu'));
-    }
-  }
-};
+// var findRooms = function(msgArray, roomname) {
+//   // for (var i = 0; i < msgArray.length; i++) {
+//   //   if (msgArray[i].roomname) rooms[msgArray[i].roomname] = msgArray[i].roomname;
+//   // }
+//   for (var room in rooms) {
+//     if (room === roomname) {
+//       $('<li></li>').attr('class', 'roomItem currentRoom').text(rooms[room]).appendTo($('#dropdownMenu'));
+//     } else{
+//       $('<li></li>').attr('class', 'roomItem').text(rooms[room]).appendTo($('#dropdownMenu'));
+//     }
+//   }
+// };
 
 var cleanMessages = function(msgArray, roomName) {
-  findRooms(msgArray, roomName);
-  for (var i = 0; i < msgArray.length; i++) {
-    var msgString = msgArray[i].get('text');
-    var msgCreated = msgArray[i].get('createdAt').slice(0,10);
-    var username = msgArray[i].get('username') || 'anonymous';
-    var messageRoom = msgArray[i].get('roomname') || undefined;
-    var mainMsgDiv;
+  // findRooms(msgArray, roomName);
+  // for (var i = 0; i < msgArray.length; i++) {
+  //   var msgString = msgArray[i].get('text');
+  //   var msgCreated = msgArray[i].get('createdAt').slice(0,10);
+  //   var username = msgArray[i].get('username') || 'anonymous';
+  //   var messageRoom = msgArray[i].get('roomname') || undefined;
+  //   var mainMsgDiv;
 
-    if(friendList.indexOf(username) !== -1) {
-      mainMsgDiv = $('<div></div>').attr('class', 'message friend');
-    }else {
-      mainMsgDiv = $('<div></div>').attr('class', 'message');
-    }
-    $('<div></div>').attr('class', 'username').text(username).appendTo(mainMsgDiv);
-    $('<div></div>').attr('class', 'msgCreated').text(msgCreated).appendTo(mainMsgDiv);
-    $('<div></div>').attr('class', 'messageText').text(msgString).appendTo(mainMsgDiv);
-    $('<div class="friendImg"><img src="' + friendImgURL + '"/></div>').appendTo(mainMsgDiv);
+    // if(friendList.indexOf(username) !== -1) {
+    //   mainMsgDiv = $('<div></div>').attr('class', 'message friend');
+    // }else {
+    //   mainMsgDiv = $('<div></div>').attr('class', 'message');
+    // }
+    // $('<div></div>').attr('class', 'username').text(username).appendTo(mainMsgDiv);
+    // $('<div></div>').attr('class', 'msgCreated').text(msgCreated).appendTo(mainMsgDiv);
+    // $('<div></div>').attr('class', 'messageText').text(msgString).appendTo(mainMsgDiv);
+    // $('<div class="friendImg"><img src="' + friendImgURL + '"/></div>').appendTo(mainMsgDiv);
 
     if (roomName){
       if (messageRoom === roomName){
@@ -56,16 +57,44 @@ var cleanMessages = function(msgArray, roomName) {
     } else {
       mainMsgDiv.appendTo('#messageArea');
     }
-  }
+  // }
 };
 
-var Messages = Backbone.Model.extend({});
+var Rooms = Backbone.Model.extend();
+
+var RoomsView = Backbone.View.extend({
+  tagName: 'li',
+  render: function() {
+    console.log('i render therefore i am');
+    if (this.model.get('room') === currentRoom) {
+      this.$el.attr('class', 'roomItem currentRoom').text(this.model.get('room')).appendTo($('#dropdownMenu'));
+    } else{
+      this.$el.attr('class', 'roomItem').text(this.model.get('room')).appendTo($('#dropdownMenu'));
+    }
+  }
+});
+
+
+
+var Messages = Backbone.Model.extend();
 
 var MessagesView = Backbone.View.extend({
   render: function() {
-    // debugger
-    this.$el.text(this.model.get('text'));
-    this.$el.appendTo('#messageArea');
+    var $messageDiv = this.$el;
+    var msgString = this.model.get('text');
+    var msgCreated = this.model.get('createdAt').slice(0,10);
+    var username = this.model.get('username') || 'anonymous';
+    if(friendList.indexOf(username) !== -1) {
+      $messageDiv.attr('class', 'message friend');
+    } else {
+      $messageDiv.attr('class', 'message');
+    }
+    $('<div></div>').attr('class', 'username').text(username).appendTo($messageDiv);
+    $('<div></div>').attr('class', 'msgCreated').text(msgCreated).appendTo($messageDiv);
+    $('<div></div>').attr('class', 'messageText').text(msgString).appendTo($messageDiv);
+    $('<div class="friendImg"><img src="' + friendImgURL + '"/></div>').appendTo($messageDiv);
+
+    $messageDiv.appendTo('#messageArea');
   }
 });
 
@@ -73,18 +102,29 @@ var Update = function() {};
 
 Update.prototype.getNewMsgs = function(roomname){
   $.get('https://api.parse.com/1/classes/messages', 'order=-createdAt', function(data) {
-      var msgArray = $.map(data.results, function(messageData){
-        return new Messages(messageData);
-      });
-      var messageViews = $.map(msgArray, function(messageData) {
-        return new MessagesView({model: messageData});
-      });
-      $('#messageArea').html('');
-      $('#dropdownMenu').html('');
-      // cleanMessages(msgArray, roomname);
-      _.each(messageViews, function(messageView) {
-        messageView.render();
-      });
+    var msgArray = $.map(data.results, function(messageData){
+      return new Messages(messageData);
+    });
+    var messageViews = $.map(msgArray, function(messageData) {
+      return new MessagesView({model: messageData});
+    });
+    for (var i = 0; i < msgArray.length; i++) {
+      if (msgArray[i].get('roomname')) rooms[msgArray[i].get('roomname')] = msgArray[i].get('roomname');
+    }
+    var roomArray = [];
+    for (var room in rooms){
+      var roomModel = new Rooms({room: room});
+      roomArray.push(new RoomsView({model: roomModel}));
+    }
+    $('#messageArea').html('');
+    $('#dropdownMenu').html('');
+    _.each(messageViews, function(messageView) {
+      messageView.render();
+    });
+    _.each(roomArray, function(room){
+      room.render();
+    });
+      // for each room view, render it
   });
 };
 
@@ -148,7 +188,6 @@ ChatView.prototype.createRoom = function(){
     $('#messageArea').html('');
     $('#dropdownMenu').html('');
     rooms[selectedRoom] = selectedRoom;
-    cleanMessages([], selectedRoom);
 };
 
 $(document).ready(function(){
